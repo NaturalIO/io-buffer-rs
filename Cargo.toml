@@ -1,0 +1,31 @@
+[package]
+name = "io-buffer"
+version = "1.0.0"
+edition = "2024"
+authors = ["plan <frostyplanet@gmail.com>"]
+categories = ["development-tools::debugging"]
+repository = "https://github.com/NaturalIO/io-buffer-rs"
+documentation = "https://docs.rs/io-buffer"
+keywords = ["buffer", "io"]
+license = "MIT"
+description = """
+A buffer abstracted for disk and network IO, with static lifetime.
+Unify Vec and *libc::c_void into one type, with smallest mem footprint.
+"""
+
+[dependencies]
+nix = "0"
+libc = { version= "0" }
+lz4-sys = { version="1.11.1", optional=true }
+rand = "0.9"
+fail = "0"
+log = "0"
+captains-log = "0"
+
+[dev-dependencies]
+md5 = "0"
+
+[features]
+default = []
+compress = []
+lz4 = ["compress", "dep:lz4-sys"]
