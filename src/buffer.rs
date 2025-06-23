@@ -103,11 +103,7 @@ impl Buffer {
         let _size = size as u32 | MAX_BUFFER_SIZE as u32;
         // mutable == true
         let _cap = _size;
-        Ok(Self {
-            buf_ptr: ptr,
-            size: _size,
-            cap: _cap,
-        })
+        Ok(Self { buf_ptr: ptr, size: _size, cap: _cap })
     }
 
     /// Wrap a mutable buffer passed from c code, without owner ship.
@@ -125,11 +121,7 @@ impl Buffer {
         // owned == false
         // mutable == true
         let _cap = size as u32 | MAX_BUFFER_SIZE as u32;
-        Self {
-            buf_ptr: ptr,
-            size: size as u32,
-            cap: _cap,
-        }
+        Self { buf_ptr: ptr, size: size as u32, cap: _cap }
     }
 
     /// Wrap a const buffer passed from c code, without owner ship.
@@ -146,11 +138,7 @@ impl Buffer {
         log_assert!(ptr != std::ptr::null());
         // owned == false
         // mutable == false
-        Self {
-            buf_ptr: unsafe { std::mem::transmute(ptr) },
-            size: size as u32,
-            cap: size as u32,
-        }
+        Self { buf_ptr: unsafe { std::mem::transmute(ptr) }, size: size as u32, cap: size as u32 }
     }
 
     #[inline(always)]
@@ -177,18 +165,8 @@ impl Buffer {
 
     #[inline(always)]
     pub fn set_len(&mut self, len: usize) {
-        log_assert!(
-            len < MAX_BUFFER_SIZE,
-            "size {} >= {} is not supported",
-            len,
-            MAX_BUFFER_SIZE
-        );
-        log_assert!(
-            len <= self.cap as usize,
-            "size {} must be <= {}",
-            len,
-            self.cap
-        );
+        log_assert!(len < MAX_BUFFER_SIZE, "size {} >= {} is not supported", len, MAX_BUFFER_SIZE);
+        log_assert!(len <= self.cap as usize, "size {} must be <= {}", len, self.cap);
         let owned: u32 = self.size & MAX_BUFFER_SIZE as u32;
         self.size = owned | len as u32;
     }
@@ -345,21 +323,12 @@ impl From<Vec<u8>> for Buffer {
             size,
             MAX_BUFFER_SIZE
         );
-        log_assert!(
-            cap < MAX_BUFFER_SIZE,
-            "cap {} >= {} is not supported",
-            cap,
-            MAX_BUFFER_SIZE
-        );
+        log_assert!(cap < MAX_BUFFER_SIZE, "cap {} >= {} is not supported", cap, MAX_BUFFER_SIZE);
         // owned == true
         let _size = size as u32 | MAX_BUFFER_SIZE as u32;
         // mutable == true
         let _cap = cap as u32 | MAX_BUFFER_SIZE as u32;
-        Buffer {
-            buf_ptr: buf.leak().as_mut_ptr() as *mut libc::c_void,
-            size: _size,
-            cap: _cap,
-        }
+        Buffer { buf_ptr: buf.leak().as_mut_ptr() as *mut libc::c_void, size: _size, cap: _cap }
     }
 }
 

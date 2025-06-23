@@ -86,10 +86,7 @@ mod tests {
         let decompressed_len =
             LZ4::decompress(&_compressed_buffer, &mut decompressed_buffer).unwrap();
         println!("decompressed_len={}", decompressed_len);
-        assert_eq!(
-            &decompressed_buffer[0..decompressed_len as usize],
-            &buffer[0..]
-        );
+        assert_eq!(&decompressed_buffer[0..decompressed_len as usize], &buffer[0..]);
     }
 
     #[test]
@@ -178,9 +175,7 @@ mod tests {
             println!("compressed len={}", compressed_len);
 
             let mut file_res = File::create("dst.lz4.rust").unwrap();
-            file_res
-                .write_all(&mut compressed_buffer[0..compressed_len as usize])
-                .unwrap();
+            file_res.write_all(&mut compressed_buffer[0..compressed_len as usize]).unwrap();
         }
         {
             let mut file = File::open("dst.lz4").unwrap();
@@ -197,9 +192,6 @@ mod tests {
         let decompressed_len =
             LZ4::decompress(&dst_buffer[0..dst_len], &mut decompressed_buffer).unwrap();
         println!("decompressed_buffer size={}", decompressed_len);
-        assert_eq!(
-            &src_buffer[0..src_len],
-            &decompressed_buffer[0..decompressed_len as usize]
-        );
+        assert_eq!(&src_buffer[0..src_len], &decompressed_buffer[0..decompressed_len as usize]);
     }
 }
