@@ -141,28 +141,33 @@ impl Buffer {
         Self { buf_ptr: unsafe { std::mem::transmute(ptr) }, size: size as u32, cap: size as u32 }
     }
 
+    /// Tell whether the Buffer has true 'static lifetime.
     #[inline(always)]
     pub fn is_owned(&self) -> bool {
         self.size & (MAX_BUFFER_SIZE as u32) != 0
     }
 
+    /// Tell whether the Buffer can as_mut().
     #[inline(always)]
     pub fn is_mutable(&self) -> bool {
         self.cap & (MAX_BUFFER_SIZE as u32) != 0
     }
 
+    /// Return the buffer's size.
     #[inline(always)]
     pub fn len(&self) -> usize {
         let size = self.size & (MAX_BUFFER_SIZE as u32 - 1);
         size as usize
     }
 
+    /// Return the memory capacity managed by buffer's ptr
     #[inline(always)]
     pub fn capacity(&self) -> usize {
         let cap = self.cap & (MAX_BUFFER_SIZE as u32 - 1);
         cap as usize
     }
 
+    /// Change the buffer's size, the same as `Vec::set_len()`. Panics when len > capacity
     #[inline(always)]
     pub fn set_len(&mut self, len: usize) {
         log_assert!(len < MAX_BUFFER_SIZE, "size {} >= {} is not supported", len, MAX_BUFFER_SIZE);
@@ -190,7 +195,7 @@ impl Buffer {
         unsafe { slice::from_raw_parts_mut(self.buf_ptr as *mut u8, self.len()) }
     }
 
-    /// Check this buffer usable by aio
+    /// Check this buffer usable by aio. True when get from `Buffer::aligned()`.
     #[inline(always)]
     pub fn is_aligned(&self) -> bool {
         is_aligned(self.buf_ptr as usize, self.capacity())
@@ -272,6 +277,8 @@ impl Buffer {
     }
 }
 
+/// Allocates a new memory with the same size and clone the content.
+/// If original buffer is a c reference, will get a owned buffer after clone().
 impl Clone for Buffer {
     fn clone(&self) -> Self {
         let mut new_buf = if self.is_aligned() {

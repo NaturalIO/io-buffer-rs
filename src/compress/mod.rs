@@ -1,5 +1,6 @@
 use std::io::Result;
 
+/// A trait for different compress method
 pub trait Compression {
     /// Estimate the upper bound of buffer size needed
     fn compress_bound(origin_len: usize) -> usize;
@@ -22,5 +23,6 @@ pub trait Compression {
     fn decompress(src: &[u8], dest: &mut [u8]) -> Result<usize>;
 }
 
-#[cfg(feature = "lz4")]
+#[cfg(any(feature = "lz4", doc))]
+/// Enabled with feature `lz4`
 pub mod lz4;

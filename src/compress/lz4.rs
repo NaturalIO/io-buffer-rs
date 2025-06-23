@@ -1,8 +1,6 @@
 use super::Compression;
 use std::io::{Error, ErrorKind, Result};
 
-use lz4_sys::*;
-
 pub const ERR_LZ4_COMPRESS: &'static str = "lz4_compress_failed";
 pub const ERR_LZ4_CDECOMPRESS: &'static str = "lz4_decompress_failed";
 
@@ -11,13 +9,13 @@ pub struct LZ4();
 impl Compression for LZ4 {
     #[inline]
     fn compress_bound(size: usize) -> usize {
-        unsafe { LZ4_compressBound(size as i32) as usize }
+        unsafe { lz4_sys::LZ4_compressBound(size as i32) as usize }
     }
 
     #[inline]
     fn compress(src: &[u8], dest: &mut [u8]) -> Result<usize> {
         let compressed_len = unsafe {
-            LZ4_compress_default(
+            lz4_sys::LZ4_compress_default(
                 src.as_ptr() as *const libc::c_char,
                 dest.as_mut_ptr() as *mut libc::c_char,
                 src.len() as i32,
@@ -34,7 +32,7 @@ impl Compression for LZ4 {
     #[inline]
     fn decompress(src: &[u8], dest: &mut [u8]) -> Result<usize> {
         let decompressed_len = unsafe {
-            LZ4_decompress_safe(
+            lz4_sys::LZ4_decompress_safe(
                 src.as_ptr() as *const libc::c_char,
                 dest.as_mut_ptr() as *mut libc::c_char,
                 src.len() as i32,

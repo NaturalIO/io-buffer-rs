@@ -14,6 +14,20 @@
 //!
 //! On debug mode, provides runtime checking if you try to as_mut() a const buffer.
 //!
+//! ## Usage
+//!
+//! Cargo.toml:
+//!
+//! ``` toml
+//! [dependencies]
+//! io-buffer = "1"
+//! ```
+//!
+//! ## Feature flags
+//!
+//! * compress: enable [Compression] trait
+//!
+//! * lz4: enable lz4 compression
 
 extern crate log;
 #[macro_use]
@@ -25,7 +39,8 @@ mod utils;
 pub use buffer::{Buffer, MAX_BUFFER_SIZE};
 pub use utils::*;
 
-#[cfg(feature = "compress")]
+#[cfg(any(feature = "compress", doc))]
+/// Enabled with feature `compress`
 pub mod compress;
 
 #[cfg(test)]

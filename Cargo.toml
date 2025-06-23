@@ -29,3 +29,7 @@ md5 = "0"
 default = []
 compress = []
 lz4 = ["compress", "dep:lz4-sys"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
