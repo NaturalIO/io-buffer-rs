@@ -23,3 +23,19 @@ for disk and network IO:
 mutable reference (Buffer::from_c_ref_mut()) of unsafe c code.
 
 On debug mode, provides runtime checking if you try to as_mut() a const buffer.
+
+
+## Usage
+
+Cargo.toml:
+
+``` toml
+[dependencies]
+io-buffer = "1"
+```
+
+## Feature flags
+
+* compress: enable [Compression] trait
+
+* lz4: enable lz4 compression
