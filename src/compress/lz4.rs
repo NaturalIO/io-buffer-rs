@@ -2,7 +2,7 @@ use super::Compression;
 use std::io::{Error, ErrorKind, Result};
 
 pub const ERR_LZ4_COMPRESS: &'static str = "lz4_compress_failed";
-pub const ERR_LZ4_CDECOMPRESS: &'static str = "lz4_decompress_failed";
+pub const ERR_LZ4_DECOMPRESS: &'static str = "lz4_decompress_failed";
 
 pub struct LZ4();
 
@@ -40,7 +40,7 @@ impl Compression for LZ4 {
             )
         };
         if decompressed_len <= 0 {
-            Err(Error::new(ErrorKind::Other, ERR_LZ4_CDECOMPRESS))
+            Err(Error::new(ErrorKind::Other, ERR_LZ4_DECOMPRESS))
         } else {
             Ok(decompressed_len as usize)
         }

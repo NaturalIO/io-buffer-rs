@@ -130,7 +130,7 @@ fn test_set_len() {
 }
 
 #[test]
-fn test_buf_convertion() {
+fn test_buf_conversion() {
     let buf = Vec::with_capacity(1000);
     let mut buf2: Buffer = buf.into();
     assert!(buf2.is_owned());
