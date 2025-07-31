@@ -66,20 +66,20 @@ mod tests {
     fn test_compress() {
         let buf_len: usize = 16 * 1024;
         // prepare
-        let mut buffer = Buffer::alloc(buf_len).unwrap();
+        let mut buffer = Buffer::alloc(buf_len as i32).unwrap();
         rand_buffer(&mut buffer);
         let bound = LZ4::compress_bound(buf_len);
         println!("compress_bound={}", bound);
 
         // compress
-        let mut compressed_buffer = Buffer::alloc(bound).unwrap();
+        let mut compressed_buffer = Buffer::alloc(bound as i32).unwrap();
         let compressed_len = LZ4::compress(&buffer, &mut compressed_buffer).unwrap();
-        let mut _compressed_buffer = Buffer::alloc(compressed_len as usize).unwrap();
+        let mut _compressed_buffer = Buffer::alloc(compressed_len as i32).unwrap();
         _compressed_buffer.copy_from(0, &compressed_buffer);
         println!("compressed_len={}", _compressed_buffer.len());
 
         // decompress
-        let mut decompressed_buffer = Buffer::alloc(buf_len).unwrap();
+        let mut decompressed_buffer = Buffer::alloc(buf_len as i32).unwrap();
         decompressed_buffer.set_zero(0, decompressed_buffer.len());
         let decompressed_len =
             LZ4::decompress(&_compressed_buffer, &mut decompressed_buffer).unwrap();
@@ -100,7 +100,7 @@ mod tests {
         //PROFILER.lock().unwrap().start("./compress.profile").unwrap();
         let start_ts = Instant::now();
         for _i in 0..loop_cnt {
-            let mut compressed_buffer = Buffer::alloc(bound).unwrap();
+            let mut compressed_buffer = Buffer::alloc(bound as i32).unwrap();
 
             let mut _compressed_len = LZ4::compress(&buffer, &mut compressed_buffer).unwrap();
             compressed_len = _compressed_len;
@@ -124,7 +124,7 @@ mod tests {
         println!("compress_bound={}", bound);
 
         bound = (bound + 511) / 512 * 512;
-        let mut compressed_buffer = Buffer::alloc(bound).unwrap();
+        let mut compressed_buffer = Buffer::alloc(bound as i32).unwrap();
         let compressed_len = LZ4::compress(&buffer, &mut compressed_buffer).unwrap();
 
         let mut decompressed_len = 0;

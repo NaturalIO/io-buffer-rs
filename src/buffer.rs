@@ -9,7 +9,7 @@ use std::{
 
 use fail::fail_point;
 
-/// Buffer is a static type,  size and cap (max to u32). Memory footprint is only 16B.
+/// Buffer is a static type,  size and cap (max to i32). Memory footprint is only 16B.
 ///
 /// Can obtain from alloc (uninitialized, mutable and owned),
 ///
@@ -49,8 +49,10 @@ impl Buffer {
     /// with size set to capacity.
     ///
     /// **NOTE**: Be aware that buffer allocated is not initialized.
+    ///
+    /// `size`: must be larger than zero
     #[inline]
-    pub fn aligned(size: usize) -> Result<Buffer, Errno> {
+    pub fn aligned(size: i32) -> Result<Buffer, Errno> {
         let mut _buf = Self::_alloc(MIN_ALIGN, size)?;
         fail_point!("alloc_buf", |_| {
             rand_buffer(&mut _buf);
@@ -63,8 +65,10 @@ impl Buffer {
     /// with size set to capacity.
     ///
     /// **NOTE**: Be aware that buffer allocated is not initialized.
+    ///
+    /// `size`: must be larger than zero
     #[inline]
-    pub fn alloc(size: usize) -> Result<Buffer, Errno> {
+    pub fn alloc(size: i32) -> Result<Buffer, Errno> {
         let mut _buf = Self::_alloc(0, size)?;
         fail_point!("alloc_buf", |_| {
             rand_buffer(&mut _buf);
@@ -74,18 +78,15 @@ impl Buffer {
     }
 
     /// Allocate a buffer.
+    ///
+    /// `size`: must be larger than zero
     #[inline]
-    fn _alloc(align: usize, size: usize) -> Result<Self, Errno> {
+    fn _alloc(align: usize, size: i32) -> Result<Self, Errno> {
+        assert!(size > 0);
         let mut ptr: *mut libc::c_void = std::ptr::null_mut();
-        log_assert!(
-            size < MAX_BUFFER_SIZE,
-            "size {} >= {} is not supported",
-            size,
-            MAX_BUFFER_SIZE
-        );
         if align > 0 {
             debug_assert!((align & (MIN_ALIGN - 1)) == 0);
-            debug_assert!((size & (align - 1)) == 0);
+            debug_assert!((size as usize & (align - 1)) == 0);
             unsafe {
                 let res =
                     libc::posix_memalign(&mut ptr, align as libc::size_t, size as libc::size_t);
@@ -109,14 +110,11 @@ impl Buffer {
     /// Wrap a mutable buffer passed from c code, without owner ship.
     ///
     /// **NOTE**: will not free on drop. You have to ensure the buffer valid throughout the lifecycle.
+    ///
+    /// `size`: must be larger than or equal to zero.
     #[inline]
-    pub fn from_c_ref_mut(ptr: *mut libc::c_void, size: usize) -> Self {
-        log_assert!(
-            size < MAX_BUFFER_SIZE,
-            "size {} >= {} is not supported",
-            size,
-            MAX_BUFFER_SIZE
-        );
+    pub fn from_c_ref_mut(ptr: *mut libc::c_void, size: i32) -> Self {
+        assert!(size >= 0);
         log_assert!(ptr != std::ptr::null_mut());
         // owned == false
         // mutable == true
@@ -127,14 +125,11 @@ impl Buffer {
     /// Wrap a const buffer passed from c code, without owner ship.
     ///
     /// **NOTE**: will not free on drop. You have to ensure the buffer valid throughout the lifecycle
+    ///
+    /// `size`: must be larger than or equal to zero.
     #[inline]
-    pub fn from_c_ref_const(ptr: *const libc::c_void, size: usize) -> Self {
-        log_assert!(
-            size < MAX_BUFFER_SIZE,
-            "size {} >= {} is not supported",
-            size,
-            MAX_BUFFER_SIZE
-        );
+    pub fn from_c_ref_const(ptr: *const libc::c_void, size: i32) -> Self {
+        assert!(size >= 0);
         log_assert!(ptr != std::ptr::null());
         // owned == false
         // mutable == false
@@ -282,9 +277,9 @@ impl Buffer {
 impl Clone for Buffer {
     fn clone(&self) -> Self {
         let mut new_buf = if self.is_aligned() {
-            Self::aligned(self.capacity()).unwrap()
+            Self::aligned(self.capacity() as i32).unwrap()
         } else {
-            Self::alloc(self.capacity()).unwrap()
+            Self::alloc(self.capacity() as i32).unwrap()
         };
         if self.len() != self.capacity() {
             new_buf.set_len(self.len());

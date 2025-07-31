@@ -149,7 +149,7 @@ fn test_c_ref_clone_and_drop() {
     let mut buffer = Buffer::alloc(1024).unwrap();
     rand_buffer(&mut buffer);
     let mut buffer_ref =
-        Buffer::from_c_ref_mut(buffer.get_raw_mut() as *mut libc::c_void, buffer.len());
+        Buffer::from_c_ref_mut(buffer.get_raw_mut() as *mut libc::c_void, buffer.len() as i32);
     assert!(!buffer_ref.is_owned());
     assert!(buffer_ref.is_mutable());
     assert!(buffer.is_owned());
@@ -182,7 +182,7 @@ fn test_c_ref_const() {
     let mut buffer = Buffer::alloc(1024).unwrap();
     rand_buffer(&mut buffer);
     let mut buffer_ref =
-        Buffer::from_c_ref_const(buffer.get_raw() as *const libc::c_void, buffer.len());
+        Buffer::from_c_ref_const(buffer.get_raw() as *const libc::c_void, buffer.len() as i32);
     assert_eq!(buffer.len(), 1024);
     assert_eq!(buffer.capacity(), 1024);
     assert!(buffer.is_mutable());
@@ -207,7 +207,7 @@ fn test_c_ref_mutability() {
     let mut buffer = Buffer::alloc(1024).unwrap();
     rand_buffer(&mut buffer);
     let mut buffer_ref_const =
-        Buffer::from_c_ref_const(buffer.get_raw() as *const libc::c_void, buffer.len());
+        Buffer::from_c_ref_const(buffer.get_raw() as *const libc::c_void, buffer.len() as i32);
     assert!(!buffer_ref_const.is_mutable());
     assert!(!buffer_ref_const.is_owned());
     rand_buffer(&mut buffer_ref_const);
