@@ -115,7 +115,7 @@ impl Buffer {
     #[inline]
     pub fn from_c_ref_mut(ptr: *mut libc::c_void, size: i32) -> Self {
         assert!(size >= 0);
-        log_assert!(ptr != std::ptr::null_mut());
+        assert!(ptr != std::ptr::null_mut());
         // owned == false
         // mutable == true
         let _cap = size as u32 | MAX_BUFFER_SIZE as u32;
@@ -130,7 +130,7 @@ impl Buffer {
     #[inline]
     pub fn from_c_ref_const(ptr: *const libc::c_void, size: i32) -> Self {
         assert!(size >= 0);
-        log_assert!(ptr != std::ptr::null());
+        assert!(ptr != std::ptr::null());
         // owned == false
         // mutable == false
         Self { buf_ptr: unsafe { std::mem::transmute(ptr) }, size: size as u32, cap: size as u32 }
@@ -165,8 +165,8 @@ impl Buffer {
     /// Change the buffer's size, the same as `Vec::set_len()`. Panics when len > capacity
     #[inline(always)]
     pub fn set_len(&mut self, len: usize) {
-        log_assert!(len < MAX_BUFFER_SIZE, "size {} >= {} is not supported", len, MAX_BUFFER_SIZE);
-        log_assert!(len <= self.cap as usize, "size {} must be <= {}", len, self.cap);
+        assert!(len < MAX_BUFFER_SIZE, "size {} >= {} is not supported", len, MAX_BUFFER_SIZE);
+        assert!(len <= self.cap as usize, "size {} must be <= {}", len, self.cap);
         let owned: u32 = self.size & MAX_BUFFER_SIZE as u32;
         self.size = owned | len as u32;
     }
@@ -319,13 +319,8 @@ impl From<Vec<u8>> for Buffer {
     fn from(buf: Vec<u8>) -> Self {
         let size = buf.len();
         let cap = buf.capacity();
-        log_assert!(
-            size < MAX_BUFFER_SIZE,
-            "size {} >= {} is not supported",
-            size,
-            MAX_BUFFER_SIZE
-        );
-        log_assert!(cap < MAX_BUFFER_SIZE, "cap {} >= {} is not supported", cap, MAX_BUFFER_SIZE);
+        assert!(size < MAX_BUFFER_SIZE, "size {} >= {} is not supported", size, MAX_BUFFER_SIZE);
+        assert!(cap < MAX_BUFFER_SIZE, "cap {} >= {} is not supported", cap, MAX_BUFFER_SIZE);
         // owned == true
         let _size = size as u32 | MAX_BUFFER_SIZE as u32;
         // mutable == true

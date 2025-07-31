@@ -29,10 +29,6 @@
 //!
 //! * lz4: enable lz4 compression
 
-extern crate log;
-#[macro_use]
-extern crate captains_log;
-
 mod buffer;
 mod utils;
 
