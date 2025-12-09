@@ -37,11 +37,11 @@ unsafe impl Send for Buffer {}
 
 unsafe impl Sync for Buffer {}
 
-pub const MIN_ALIGN: usize = 512;
+pub const MIN_ALIGN: u32 = 512;
 pub const MAX_BUFFER_SIZE: usize = 1 << 31;
 
 fn is_aligned(offset: usize, size: usize) -> bool {
-    return (offset & (MIN_ALIGN - 1) == 0) && (size & (MIN_ALIGN - 1) == 0);
+    return (offset & (MIN_ALIGN as usize - 1) == 0) && (size & (MIN_ALIGN as usize - 1) == 0);
 }
 
 impl Buffer {
@@ -54,6 +54,24 @@ impl Buffer {
     #[inline]
     pub fn aligned(size: i32) -> Result<Buffer, Errno> {
         let mut _buf = Self::_alloc(MIN_ALIGN, size)?;
+        fail_point!("alloc_buf", |_| {
+            rand_buffer(&mut _buf);
+            return Ok(_buf);
+        });
+        return Ok(_buf);
+    }
+
+    /// Allocate mutable and owned aligned buffer for aio by posix_memalign(),
+    /// with size set to capacity.
+    ///
+    /// **NOTE**: Be aware that buffer allocated is not initialized.
+    ///
+    /// `size`: must be larger than zero
+    ///
+    /// `align`: normally 512 or 4096
+    #[inline]
+    pub fn aligned_by(size: i32, align: u32) -> Result<Buffer, Errno> {
+        let mut _buf = Self::_alloc(align, size)?;
         fail_point!("alloc_buf", |_| {
             rand_buffer(&mut _buf);
             return Ok(_buf);
@@ -81,12 +99,12 @@ impl Buffer {
     ///
     /// `size`: must be larger than zero
     #[inline]
-    fn _alloc(align: usize, size: i32) -> Result<Self, Errno> {
+    fn _alloc(align: u32, size: i32) -> Result<Self, Errno> {
         assert!(size > 0);
         let mut ptr: *mut libc::c_void = std::ptr::null_mut();
         if align > 0 {
             debug_assert!((align & (MIN_ALIGN - 1)) == 0);
-            debug_assert!((size as usize & (align - 1)) == 0);
+            debug_assert!((size as u32 & (align - 1)) == 0);
             unsafe {
                 let res =
                     libc::posix_memalign(&mut ptr, align as libc::size_t, size as libc::size_t);
