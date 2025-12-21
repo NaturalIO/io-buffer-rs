@@ -1,9 +1,16 @@
 use super::*;
 use std::time::Instant;
 
+#[cfg(target_arch = "x86_64")]
+#[test]
+fn test_buffer_size() {
+    use std::mem::size_of;
+    assert_eq!(size_of::<Buffer>(), 16);
+    assert_eq!(size_of::<Option<Buffer>>(), 16);
+}
+
 #[test]
 fn test_buffer_alloc() {
-    assert_eq!(std::mem::size_of::<Buffer>(), 16);
     {
         let mut buffer = Buffer::aligned(1024 * 1024).unwrap();
         buffer[1024 * 1024 - 1] = 5;

@@ -1,10 +1,11 @@
 use super::utils::{safe_copy, set_zero};
-use libc;
+use libc::{c_void, free, malloc, posix_memalign};
 use nix::errno::Errno;
 use std::slice;
 use std::{
     fmt,
     ops::{Deref, DerefMut},
+    ptr::{NonNull, null_mut},
 };
 
 use fail::fail_point;
@@ -18,9 +19,9 @@ use fail::fail_point;
 /// or convert `From<Vec<u8>>` (mutable and owned), and `To<Vec<u8>>`
 ///
 /// When Clone, will copy the contain into a new Buffer.
-#[repr(C, align(1))]
+#[repr(C)]
 pub struct Buffer {
-    buf_ptr: *mut libc::c_void,
+    buf_ptr: NonNull<c_void>,
     /// the highest bit of `size` represents `owned`
     pub(crate) size: u32,
     /// the highest bit of `cap` represents `mutable`
@@ -101,20 +102,19 @@ impl Buffer {
     #[inline]
     fn _alloc(align: u32, size: i32) -> Result<Self, Errno> {
         assert!(size > 0);
-        let mut ptr: *mut libc::c_void = std::ptr::null_mut();
+        let mut ptr: *mut c_void = null_mut();
         if align > 0 {
             debug_assert!((align & (MIN_ALIGN - 1)) == 0);
             debug_assert!((size as u32 & (align - 1)) == 0);
             unsafe {
-                let res =
-                    libc::posix_memalign(&mut ptr, align as libc::size_t, size as libc::size_t);
+                let res = posix_memalign(&mut ptr, align as libc::size_t, size as libc::size_t);
                 if res != 0 {
                     return Err(Errno::ENOMEM);
                 }
             }
         } else {
-            ptr = unsafe { libc::malloc(size as libc::size_t) };
-            if ptr == std::ptr::null_mut() {
+            ptr = unsafe { malloc(size as libc::size_t) };
+            if ptr.is_null() {
                 return Err(Errno::ENOMEM);
             }
         }
@@ -122,7 +122,7 @@ impl Buffer {
         let _size = size as u32 | MAX_BUFFER_SIZE as u32;
         // mutable == true
         let _cap = _size;
-        Ok(Self { buf_ptr: ptr, size: _size, cap: _cap })
+        Ok(Self { buf_ptr: unsafe { NonNull::new_unchecked(ptr) }, size: _size, cap: _cap })
     }
 
     /// Wrap a mutable buffer passed from c code, without owner ship.
@@ -131,13 +131,13 @@ impl Buffer {
     ///
     /// `size`: must be larger than or equal to zero.
     #[inline]
-    pub fn from_c_ref_mut(ptr: *mut libc::c_void, size: i32) -> Self {
+    pub fn from_c_ref_mut(ptr: *mut c_void, size: i32) -> Self {
         assert!(size >= 0);
-        assert!(ptr != std::ptr::null_mut());
+        assert!(!ptr.is_null());
         // owned == false
         // mutable == true
         let _cap = size as u32 | MAX_BUFFER_SIZE as u32;
-        Self { buf_ptr: ptr, size: size as u32, cap: _cap }
+        Self { buf_ptr: unsafe { NonNull::new_unchecked(ptr) }, size: size as u32, cap: _cap }
     }
 
     /// Wrap a const buffer passed from c code, without owner ship.
@@ -146,12 +146,16 @@ impl Buffer {
     ///
     /// `size`: must be larger than or equal to zero.
     #[inline]
-    pub fn from_c_ref_const(ptr: *const libc::c_void, size: i32) -> Self {
+    pub fn from_c_ref_const(ptr: *const c_void, size: i32) -> Self {
         assert!(size >= 0);
-        assert!(ptr != std::ptr::null());
+        assert!(!ptr.is_null());
         // owned == false
         // mutable == false
-        Self { buf_ptr: unsafe { std::mem::transmute(ptr) }, size: size as u32, cap: size as u32 }
+        Self {
+            buf_ptr: unsafe { NonNull::new_unchecked(ptr as *mut c_void) },
+            size: size as u32,
+            cap: size as u32,
+        }
     }
 
     /// Tell whether the Buffer has true 'static lifetime.
@@ -191,7 +195,7 @@ impl Buffer {
 
     #[inline(always)]
     pub fn as_ref(&self) -> &[u8] {
-        unsafe { slice::from_raw_parts(self.buf_ptr as *const u8, self.len()) }
+        unsafe { slice::from_raw_parts(self.buf_ptr.as_ptr() as *const u8, self.len()) }
     }
 
     /// On debug mode, will panic if the Buffer is not owned [Buffer::from_c_ref_const()]
@@ -205,25 +209,25 @@ impl Buffer {
                 panic!("Cannot change a mutable buffer")
             }
         }
-        unsafe { slice::from_raw_parts_mut(self.buf_ptr as *mut u8, self.len()) }
+        unsafe { slice::from_raw_parts_mut(self.buf_ptr.as_ptr() as *mut u8, self.len()) }
     }
 
     /// Check this buffer usable by aio. True when get from `Buffer::aligned()`.
     #[inline(always)]
     pub fn is_aligned(&self) -> bool {
-        is_aligned(self.buf_ptr as usize, self.capacity())
+        is_aligned(self.buf_ptr.as_ptr() as usize, self.capacity())
     }
 
     /// Get buffer raw pointer
     #[inline]
     pub fn get_raw(&self) -> *const u8 {
-        self.buf_ptr as *const u8
+        self.buf_ptr.as_ptr() as *const u8
     }
 
     /// Get buffer raw mut pointer
     #[inline]
     pub fn get_raw_mut(&mut self) -> *mut u8 {
-        self.buf_ptr as *mut u8
+        self.buf_ptr.as_ptr() as *mut u8
     }
 
     /// Copy from another u8 slice into self[offset..].
@@ -312,7 +316,7 @@ impl Drop for Buffer {
     fn drop(&mut self) {
         if self.is_owned() {
             unsafe {
-                libc::free(self.buf_ptr);
+                free(self.buf_ptr.as_ptr());
             }
         }
     }
@@ -327,7 +331,7 @@ impl Into<Vec<u8>> for Buffer {
         // Change to not owned, to prevent drop()
         self.size &= MAX_BUFFER_SIZE as u32 - 1;
         return unsafe {
-            Vec::<u8>::from_raw_parts(self.buf_ptr as *mut u8, self.len(), self.capacity())
+            Vec::<u8>::from_raw_parts(self.buf_ptr.as_ptr() as *mut u8, self.len(), self.capacity())
         };
     }
 }
@@ -343,7 +347,11 @@ impl From<Vec<u8>> for Buffer {
         let _size = size as u32 | MAX_BUFFER_SIZE as u32;
         // mutable == true
         let _cap = cap as u32 | MAX_BUFFER_SIZE as u32;
-        Buffer { buf_ptr: buf.leak().as_mut_ptr() as *mut libc::c_void, size: _size, cap: _cap }
+        Buffer {
+            buf_ptr: unsafe { NonNull::new_unchecked(buf.leak().as_mut_ptr() as *mut c_void) },
+            size: _size,
+            cap: _cap,
+        }
     }
 }
 
