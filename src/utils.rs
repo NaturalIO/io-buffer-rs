@@ -2,20 +2,20 @@ use rand::{Rng, distr::Alphanumeric, rng};
 
 extern crate libc;
 
-/// safe_copy regardless the size of buffer.
+/// Only copy the 0..min(dst, src) of src to dst, return the bytes copied.
 #[inline]
 pub fn safe_copy(dst: &mut [u8], src: &[u8]) -> usize {
-    let len = dst.len();
-    let other_len = src.len();
-    if other_len > len {
-        dst.copy_from_slice(&src[0..len]);
-        return len;
-    } else if other_len < len {
-        dst[0..other_len].copy_from_slice(src);
-        return other_len;
+    let dst_len = dst.len();
+    let src_len = src.len();
+    if src_len > dst_len {
+        dst.copy_from_slice(&src[0..dst_len]);
+        return dst_len;
+    } else if src_len < dst_len {
+        dst[0..src_len].copy_from_slice(src);
+        return src_len;
     } else {
         dst.copy_from_slice(src);
-        return len;
+        return dst_len;
     }
 }
 

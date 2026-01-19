@@ -230,22 +230,26 @@ impl Buffer {
         self.buf_ptr.as_ptr() as *mut u8
     }
 
-    /// Copy from another u8 slice into self[offset..].
+    /// Copy from src u8 slice into self[offset..].
     ///
     /// **NOTE**: will not do memset.
     ///
-    /// Argument:
+    /// # Argument
     ///
     ///  * offset: Address of this buffer to start filling.
+    ///
+    /// # Panic
+    ///
+    /// If offset >= self.len(), will panic
     #[inline]
-    pub fn copy_from(&mut self, offset: usize, other: &[u8]) {
+    pub fn copy_from(&mut self, offset: usize, src: &[u8]) {
         let size = self.len();
         let dst = self.as_mut();
         if offset > 0 {
             assert!(offset < size);
-            safe_copy(&mut dst[offset..], other);
+            safe_copy(&mut dst[offset..], src);
         } else {
-            safe_copy(dst, other);
+            safe_copy(dst, src);
         }
     }
 
