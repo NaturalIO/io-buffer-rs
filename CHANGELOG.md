@@ -15,7 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.6] 2026-01-20
+
+## Fixed
+
+- Fix the doc for copy_from & safe_copy
+
 ## [1.0.5] 2025-12-21
+
+## Changed
 
 - Use NonNull to make Option<Buffer> smaller
 
