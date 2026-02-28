@@ -45,6 +45,7 @@ fn test_buffer_alloc() {
     }
 }
 
+#[cfg(feature = "rand")]
 #[test]
 fn test_copy_and_clean() {
     {
@@ -91,6 +92,7 @@ fn test_copy_and_clean() {
     }
 }
 
+#[cfg(feature = "rand")]
 #[test]
 fn test_set_zero() {
     let mut buffer = Buffer::alloc(100).unwrap();
@@ -114,6 +116,7 @@ fn test_set_zero() {
     println!("buffer: {}", unsafe { str::from_utf8_unchecked(&buffer) });
 }
 
+#[cfg(feature = "rand")]
 #[test]
 fn test_set_len() {
     let mut buffer = Buffer::alloc(100).unwrap();
@@ -136,6 +139,7 @@ fn test_set_len() {
     assert!(buffer2.is_owned());
 }
 
+#[cfg(feature = "rand")]
 #[test]
 fn test_buf_conversion() {
     let buf = Vec::with_capacity(1000);
@@ -151,6 +155,7 @@ fn test_buf_conversion() {
     assert_eq!(buf_v.capacity(), 1000);
 }
 
+#[cfg(feature = "rand")]
 #[test]
 fn test_c_ref_clone_and_drop() {
     let mut buffer = Buffer::alloc(1024).unwrap();
@@ -184,6 +189,7 @@ fn test_c_ref_clone_and_drop() {
     assert!(!equals);
 }
 
+#[cfg(feature = "rand")]
 #[test]
 fn test_c_ref_const() {
     let mut buffer = Buffer::alloc(1024).unwrap();
@@ -207,6 +213,7 @@ fn test_c_ref_const() {
     assert_eq!(&buffer[..], &buffer2[..]);
 }
 
+#[cfg(feature = "rand")]
 #[test]
 #[cfg(debug_assertions)]
 #[should_panic]

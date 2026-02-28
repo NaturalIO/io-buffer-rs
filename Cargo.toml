@@ -17,7 +17,7 @@ Unify Vec and *libc::c_void into one type, with smallest mem footprint.
 nix = "0"
 libc = { version= "0" }
 lz4-sys = { version="1.11.1", optional=true }
-rand = "0.9"
+fastrand = "2.3"
 fail = "0"
 log = "0"
 
@@ -28,6 +28,7 @@ md5 = "0"
 default = []
 compress = []
 lz4 = ["compress", "dep:lz4-sys"]
+rand = []
 
 [package.metadata.docs.rs]
 all-features = true

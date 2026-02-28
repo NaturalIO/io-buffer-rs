@@ -38,6 +38,10 @@ test: init
 	@${RUNTESTCASE}; _run_test_case
 	@echo "Done"
 
+.PHONY: test_leak
+test_leak: init
+	RUSTFLAGS="-Zsanitizer=leak" cargo +nightly test ${ARGS} -- --nocapture  --test-threads=1
+
 .PHONY: bench
 bench:
 	@${RUNBENCHCASE}; _run_bench_case

@@ -1,7 +1,3 @@
-use rand::{Rng, distr::Alphanumeric, rng};
-
-extern crate libc;
-
 /// Only copy the 0..min(dst, src) of src to dst, return the bytes copied.
 #[inline]
 pub fn safe_copy(dst: &mut [u8], src: &[u8]) -> usize {
@@ -28,13 +24,13 @@ pub fn set_zero(dst: &mut [u8]) {
 }
 
 /// Produce ascii random string
+#[cfg(feature = "rand")]
 #[inline]
 pub fn rand_buffer<T: AsMut<[u8]>>(dst: &mut T) {
     let s: &mut [u8] = dst.as_mut();
     let len = s.len();
-    let mut rng = rng();
     for i in 0..len {
-        s[i] = rng.sample(Alphanumeric) as u8;
+        s[i] = fastrand::alphanumeric() as u8;
     }
 }
 
@@ -78,6 +74,7 @@ mod tests {
         assert_eq!(buf2, buf3);
     }
 
+    #[cfg(feature = "rand")]
     #[test]
     fn test_rand_buffer() {
         let mut buf1: [u8; 10] = [0; 10];
