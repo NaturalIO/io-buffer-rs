@@ -8,8 +8,6 @@ use std::{
     ptr::{NonNull, null_mut},
 };
 
-use fail::fail_point;
-
 /// Buffer is a static type,  size and cap (max to i32). Memory footprint is only 16B.
 ///
 /// Can obtain from alloc (uninitialized, mutable and owned),
@@ -55,7 +53,8 @@ impl Buffer {
     #[inline]
     pub fn aligned(size: i32) -> Result<Buffer, Errno> {
         let mut _buf = Self::_alloc(MIN_ALIGN, size)?;
-        fail_point!("alloc_buf", |_| {
+        #[cfg(all(feature = "fail", feature = "rand"))]
+        fail::fail_point!("alloc_buf", |_| {
             rand_buffer(&mut _buf);
             return Ok(_buf);
         });
@@ -73,7 +72,8 @@ impl Buffer {
     #[inline]
     pub fn aligned_by(size: i32, align: u32) -> Result<Buffer, Errno> {
         let mut _buf = Self::_alloc(align, size)?;
-        fail_point!("alloc_buf", |_| {
+        #[cfg(all(feature = "fail", feature = "rand"))]
+        fail::fail_point!("alloc_buf", |_| {
             rand_buffer(&mut _buf);
             return Ok(_buf);
         });
@@ -89,7 +89,8 @@ impl Buffer {
     #[inline]
     pub fn alloc(size: i32) -> Result<Buffer, Errno> {
         let mut _buf = Self::_alloc(0, size)?;
-        fail_point!("alloc_buf", |_| {
+        #[cfg(all(feature = "fail", feature = "rand"))]
+        fail::fail_point!("alloc_buf", |_| {
             rand_buffer(&mut _buf);
             return Ok(_buf);
         });
