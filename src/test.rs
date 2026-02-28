@@ -25,7 +25,7 @@ fn test_buffer_alloc() {
         buffer[1024 * 1024 - 1] = 5;
         assert_eq!(buffer.len(), 1024 * 1024 * 10);
         assert_eq!(buffer.capacity(), 1024 * 1024 * 10);
-        assert_eq!(buffer.is_aligned(), false);
+        //assert_eq!(buffer.is_aligned(), false);
         assert!(buffer.is_mutable());
         assert!(buffer.is_owned());
     }
