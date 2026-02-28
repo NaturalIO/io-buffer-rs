@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.7] 2026-03-01
+
+## Changed
+
+- Add feature flag fail & rand
+
+- Switch from rand to fastrand
+
 ## [1.0.6] 2026-01-20
 
 ## Fixed

@@ -9,21 +9,21 @@ https://docs.rs/io-buffer)
 [![Rust 1.36+](https://img.shields.io/badge/rust-1.36+-lightgray.svg)](
 https://www.rust-lang.org)
 
-
-This crate provide a [Buffer] type, to unify the difference of different types of buffer,
+This crate provide a 16 Bytes [Buffer] type, to unify the difference of different types of buffer,
 for disk and network IO:
+
+* max buffer size 1 << 31,
 
 * Converts owned buffer, `From<Vec<u8>>` and `To<Vec<u8>>`.
 
-* Allocation with `malloc()`(Buffer::alloc())
+* Allocation with [malloc()](Buffer::alloc())
 
-* Allocation with `posix_memalign()`(Buffer::aligned())
+* Allocation with [posix_memalign()](Buffer::aligned())
 
-* Converts from const reference (Buffer::from_c_ref_const()),  or from
-mutable reference (Buffer::from_c_ref_mut()) of unsafe c code.
+* Converts from [const reference](Buffer::from_c_ref_const()),  or from
+[mutable reference](Buffer::from_c_ref_mut()) of unsafe c code.
 
 On debug mode, provides runtime checking if you try to as_mut() a const buffer.
-
 
 ## Usage
 
@@ -39,3 +39,7 @@ io-buffer = "1"
 * compress: enable [Compression] trait
 
 * lz4: enable lz4 compression
+
+* rand: enable `rand_buffer()` function
+
+* fail: enable `fail` injection point "alloc_buf" of return buffer allocate with random uninit content

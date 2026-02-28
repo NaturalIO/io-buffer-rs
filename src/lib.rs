@@ -1,33 +1,6 @@
-//! # io-buffer
-//!
-//! This crate provide a [Buffer] type, to unify the difference of different types of buffer,
-//! for disk and network IO:
-//!
-//! * Converts owned buffer, `From<Vec<u8>>` and `To<Vec<u8>>`.
-//!
-//! * Allocation with [malloc()](Buffer::alloc())
-//!
-//! * Allocation with [posix_memalign()](Buffer::aligned())
-//!
-//! * Converts from [const reference](Buffer::from_c_ref_const()),  or from
-//! [mutable reference](Buffer::from_c_ref_mut()) of unsafe c code.
-//!
-//! On debug mode, provides runtime checking if you try to as_mut() a const buffer.
-//!
-//! ## Usage
-//!
-//! Cargo.toml:
-//!
-//! ``` toml
-//! [dependencies]
-//! io-buffer = "1"
-//! ```
-//!
-//! ## Feature flags
-//!
-//! * compress: enable [Compression] trait
-//!
-//! * lz4: enable lz4 compression
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, allow(unused_attributes))]
+#![doc = include_str!("../README.md")]
 
 mod buffer;
 mod utils;
